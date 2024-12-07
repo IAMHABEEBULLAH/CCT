@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muhabsar Currency Converter</title>
+    <!-- Include Tailwind CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="bg-blue-600 p-4 text-white flex justify-between items-center">
+        <h1 class="text-3xl font-bold">Muhabsar Currency Converter</h1>
+        <!-- Brand Image -->
+        <img src="your-brand-image-url.jpg" alt="Muhabsar Logo" class="w-16 h-16 rounded-full">
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-4">
+        <!-- Services Dropdown -->
+        <section class="mb-8">
+            <label for="services" class="block text-gray-700 text-xl mb-2">Our Services:</label>
+            <select id="services" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600">
+                <option value="currency-converter">Currency Converter</option>
+                <option value="buy-currencies">Buy Currencies with Naira</option>
+                <!-- Add more services as needed -->
+            </select>
+        </section>
+
+        <!-- Currency Converter Section -->
+        <section id="currencyConverter" class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-center">Currency Converter</h2>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700" for="amount">Amount:</label>
+                <input type="number" id="amount" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700" for="fromCurrency">From:</label>
+                <select id="fromCurrency" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600">
+                    <!-- Options will be dynamically generated -->
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700" for="toCurrency">To:</label>
+                <select id="toCurrency" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600">
+                    <!-- Options will be dynamically generated -->
+                </select>
+            </div>
+            
+            <button id="convertButton" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Convert</button>
+            
+            <p id="result" class="mt-4 text-lg font-semibold text-center"></p>
+        </section>
+
+        <!-- Buy Currencies with Naira Section -->
+        <section id="buyCurrencies" class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6 mb-8 hidden">
+            <h2 class="text-2xl font-bold mb-4 text-center">Buy Currencies with Naira</h2>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700" for="sendAmount">Amount to Send (in Naira):</label>
+                <input type="number" id="sendAmount" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700" for="currencyType">Currency to Buy:</label>
+                <select id="currencyType" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600">
+                    <!-- Options for different currencies -->
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <!-- Add more currencies as needed -->
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700" for="accountNumber">Recipient's Account Number:</label>
+                <input type="text" id="accountNumber" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600">
+            </div>
+
+            <button id="buyButton" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Buy Currency</button>
+
+            <p id="buyResult" class="mt-4 text-lg font-semibold text-center"></p>
+        </section>
+
+        <!-- Company Goals, Achievements, Reviews, and Contact Information -->
+        <!-- Add the sections for Goals, Achievements, Reviews, and Contact Information here as needed -->
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-blue-600 p-4 text-white text-center">
+        <p>&copy; 2024 Muhabsar. All rights reserved.</p>
+    </footer>
+
+    <!-- JavaScript for Currency Conversion and Services -->
+    <script>
+        // Fetch exchange rates and populate currency dropdowns
+        async function fetchCurrencies() {
+            try {
+                const response = await fetch('https://open.er-api.com/v6/latest');
+                if (!response.ok) throw new Error('Failed to fetch currency data');
+                const data = await response.json();
+                const currencySelects = document.querySelectorAll('#fromCurrency, #toCurrency');
+                const currencies = Object.keys(data.rates);
+
+                currencies.forEach(currency => {
+                    currencySelects.forEach(select => {
+                        const option = document.createElement('option');
+                        option.value = currency;
+                        option.textContent = currency;
+                        select.appendChild(option);
+                    });
+                });
+            } catch (error) {
+                console.error('Error fetching currencies:', error);
+                alert('Could not load currency data. Please try again later.');
+            }
+        }
+
+        // Convert currency
+        async function convertCurrency() {
+            const amount = document.getElementById('amount').value;
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
+
+            if (!amount || !fromCurrency || !toCurrency) {
+                alert("Please fill all fields");
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://open.er-api.com/v6/latest/${fromCurrency}`);
+                if (!response.ok) throw new Error('Failed to fetch exchange rates');
+                const data = await response.json();
+                const rate = data.rates[toCurrency];
+                if (!rate) throw new Error('Invalid currency pair');
+
+                const convertedAmount = (amount * rate).toFixed(2);
+                document.getElementById('result').textContent = `${amount} ${fromCurrency} = ${convertedAmount} ${toCurrency}`;
+            } catch (error) {
+                console.error('Error converting currency:', error);
+                alert('Could not convert currency. Please try again later.');
+            }
+        }
+
+        // Handle Service Selection
+        document.getElementById('services').addEventListener('change', (event) => {
+            const currencyConverterSection = document.getElementById('currencyConverter');
+            const buyCurrenciesSection = document.getElementById('buyCurrencies');
+            
+            if (event.target.value === 'buy-currencies') {
+                currencyConverterSection.classList.add('hidden');
+                buyCurrenciesSection.classList.remove('hidden');
+            } else {
+                buyCurrenciesSection.classList.add('hidden');
+                currencyConverterSection.classList.remove('hidden');
+            }
+        });
+
+        // Buy currency functionality
+        document.getElementById('buyButton').addEventListener('click', () => {
+            const sendAmount = document.getElementById('sendAmount').value;
+            const currencyType = document.getElementById('currencyType').value;
+            const accountNumber = document.getElementById('accountNumber').value;
+
+            if (!sendAmount || !currencyType || !accountNumber) {
+                alert("Please fill all fields");
+                return;
+            }
+
+            // Here you can add functionality to handle the buy currency operation
+            // For now, it just displays a message
+            document.getElementById('buyResult').textContent = `You have chosen to buy ${sendAmount} Naira worth of ${currencyType}.`;
+        });
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchCurrencies();
+            document.getElementById('convertButton').addEventListener('click', convertCurrency);
+        });
+    </script>
+</body>
+</html>
